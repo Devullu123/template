@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="fac416a4-1193-4689-a7c4-eb2160651ff1" >
+		<http:request-connection host="notification" port="8092" />
+	</http:request-config>
+	<flow name="notification-flow" doc:id="ea72eaee-2df8-4f4b-9351-f485382642c1" >
+		<logger level="INFO" doc:name="Logger" doc:id="057cf921-3817-4dc0-bf3e-ac8921a16b99" />
+		<ee:transform doc:name="Transform Message" doc:id="fb12b8fd-84d3-47cd-b74c-6d08ab2611d8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	service : "ex-sevice",
+	body : vars.errorVar,
+	mail: "rajurao@cognizant.com",
+	ccMail: "lead@cognizant.com"
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Notification Service" doc:id="a9f9295d-4472-4323-a764-dc838c723866" config-ref="HTTP_Request_configuration"/>
+		<logger level="INFO" doc:name="Logger" doc:id="47676bbe-a313-4916-b417-eea9b1e2a8bc" message="#[payload]"/>
+	</flow>
+	<error-handler name="global-exceptionError_Handler" doc:id="01403938-0a58-4240-9f9a-baa46c7d0a46" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f5220316-e9d9-4720-b7ed-c7310fd11185" type="ANY">
+			<ee:transform doc:name="Transform Message" doc:id="5a0df13d-ce0c-432d-88e0-1703274b78f0">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="errorVar"><![CDATA[%dw 2.0
+output application/java
+---
+error.description]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="notification-flow" doc:id="0fad533f-494d-4dba-a873-9e790174e88e" name="notification-flow"/>
+		</on-error-propagate>
+	</error-handler>
+</mule>
