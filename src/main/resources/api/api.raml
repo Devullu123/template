@@ -1,0 +1,16 @@
+#%RAML 1.0
+title: sample-project
+baseUri: 
+mediaType: application/json
+version: v1
+
+
+/location:
+  post:
+    body:
+      application/json:
+        type: !include exchange_modules/b357e55d-9451-49bc-9f29-460568bc1bbd/demo/1.0.0/demo.raml
+    
+      
+
+       
